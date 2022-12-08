@@ -37,11 +37,26 @@ dotButton.addEventListener(`click`, dotFunctionality);
 
 backspaceButton.addEventListener(`click`, backspaceFunctionality);
 
-// document.addEventListener(`keyup`, (event) => {
-//     if (isFinite(event.key)) {
-
-//     }
-// })
+document.addEventListener(`keyup`, (event) => {
+    if (isFinite(event.key)) {
+        digitFunctionality(event.key);
+    }
+    else if(operatorList.includes(event.key)) {
+        operationFunctinoality(event.key);
+    }
+    else if(event.key === `.`){
+        dotFunctionality();
+    }
+    else if (event.key === `=` || event.key === `Enter`) {
+        compute();
+    }
+    else if (event.key === `Backspace`) {
+        backspaceFunctionality();
+    }
+    else if (event.key === `Clear`) {
+        clearFunctionality();
+    }
+})
 
 //-------------------------------------------------Event Listener Functions----------------------------------------------//
 function compute() {
