@@ -12,6 +12,7 @@ const backspaceButton = document.querySelector(`#backspace`);
 
 let input = [];
 const operatorList = [`+`, `-`, `*`, `/`];
+const signs = [`+`, `-`];
 
 //This will be used to know whether a new digit input should reset the calculator
 let isPreviousResult = false;
@@ -118,7 +119,13 @@ function dotFunctionality() {
     }
 
     let previous = input[input.length - 1];
-    if (operatorList.includes(previous)) {
+    //when dot is added after a sign(not an operation)
+    if(signs.includes(previous) && input.length === 1){
+        input.pop();
+        input.push(`${previous}0.`);
+    }
+    //When dot is added after operation
+    else if (operatorList.includes(previous)) {
         input.push(`0.`);
     } 
     else {
@@ -164,6 +171,7 @@ function backspaceFunctionality() {
 function isPreviousError() {
     if (displayP.textContent.slice(0,5) === `Error`) {
         displayP.textContent = ``;
+        input =[];
     }
 }
 
@@ -192,8 +200,8 @@ function operationFunctinoality(operator) {
     isPreviousResult = false;
     try {
         earlyComputeCheck();
-        addInput(operator);
         displayP.insertAdjacentText('beforeend', operator);
+        addInput(operator);
     } catch (e) {
         input=[];
         displayP.textContent = e;
@@ -206,25 +214,45 @@ function operationFunctinoality(operator) {
 /**
  * Adds new input by user to the input array(used as short-term memory).
  * @param {String} newInput - The new input of the user.
- * @throws - Errors if first input is an operator or two consecutive operators are entered.
+ * @throws - Errors if first input is an operator or two consecutive operators are entered incorrectly.
  */
 function addInput(newInput) {
-    if(input.length == 0 && !operatorList.includes(newInput)) {
+    if (input.length === 0 && (operatorList.includes(newInput) && !signs.includes(newInput))) {
+        throw `Error: First input cannot be an operator. Input has been cleared.`;
+    }
+    
+    if(input.length === 0) {
         input.push(newInput);
         return;
     }
 
-    if (input.length == 0 && operatorList.includes(newInput)) {
-        throw `Error: First input cannot be an operator. Input has been cleared.`;
-    }
-    
     let previous = input[input.length - 1];
-    
-    if(!operatorList.includes(previous) && !operatorList.includes(newInput)) {
+
+    //First two if statements manage multiple sign(+ and -) inputs
+    if (signs.includes(previous) && signs.includes(newInput) && previous === newInput) {
+        input[input.length - 1] = `+`;
+        displayP.textContent = displayP.textContent.slice(0,-2) + `+`;
+    } 
+    else if (signs.includes(previous) && signs.includes(newInput)){
+        input[input.length - 1] = `-`;
+        displayP.textContent = displayP.textContent.slice(0,-2) + `-`;
+    }
+    //The next if-case is when a number is added to a sign(not when the sign indicates an operation)
+    else if (signs.includes(previous) && !operatorList.includes(newInput) 
+        && (input.length === 1 || operatorList.includes(input[input.length - 2]))) {
+            
+        input.pop();
+        input.push(`${previous}${newInput}`);
+    }
+    //The next if-case is for two numbers being joined
+    else if (!operatorList.includes(previous) && !operatorList.includes(newInput)) {
         input.pop();
         input.push(previous + newInput);
     }
-    else if (operatorList.includes(previous) && operatorList.includes(newInput)){
+    //The last if-case is for two operators being input consecutively
+    else if (operatorList.includes(previous) 
+        && (operatorList.includes(newInput) && !signs.includes(newInput))){
+
         throw `Error: Two consecutive operators. Input has been cleared.`;
     }
     else {
@@ -237,8 +265,11 @@ function addInput(newInput) {
  */
 function earlyComputeCheck() {
     if (input.length > 2) {
-        compute();
-        isPreviousResult = false;
+        previous = input[input.length - 1];
+        if (!signs.includes(previous)) {
+            compute();
+            isPreviousResult = false;
+        }
     }
 }
 
